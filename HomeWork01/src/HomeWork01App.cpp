@@ -23,6 +23,7 @@ void HomeWork01App::setup()
 	// Initialize mySurface_
 	mySurface_ = new Surface(kSurfaceSize,kSurfaceSize,false);
 
+
 }
 
 void HomeWork01App::mouseDown( MouseEvent event )
