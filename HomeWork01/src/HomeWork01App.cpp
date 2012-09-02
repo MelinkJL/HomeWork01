@@ -64,6 +64,7 @@ private:
 	void strobe(int currentFrame);
 	void drawCircle(uint8_t* pixels,int x, int y, int r, Color8u c);
 	void drawSquare(uint8_t* pixels,int x, int y, int r, Color8u c);
+	void drawRectangle(uint8_t* pixels,int x, int y, int width, int height, int lineThickness, Color8u c);
 	void drawDiamond(uint8_t* pixels,int x, int y, int r, Color8u c);
 };
 
@@ -86,11 +87,12 @@ void HomeWork01App::setup()
 	// Initialize mySurface_
 	mySurface_ = new Surface(kSurfaceSize,kSurfaceSize,false);
 	myPixels = (*mySurface_).getData();
-	blackOutWindow(myPixels);
+	//blackOutWindow(myPixels);
 	strobe(currentFrame);
-	drawCircle(myPixels,300, 350, 5, Color(red,green,blue));
-	drawSquare(myPixels,300, 350, 100, Color(180,180,180));
-	drawDiamond(myPixels,200, 250, 100, Color(red,green,blue));
+	drawCircle(myPixels,300, 350, 5, Color(0,0,0));
+	drawSquare(myPixels,300, 350, 100, Color(0,0,0));
+	drawDiamond(myPixels,200, 250, 100, Color(0,0,0));
+	drawRectangle(myPixels,300,100,50,100,5,Color(0,0,0));
 	
 }
 
@@ -101,9 +103,9 @@ void HomeWork01App::blackOutWindow(uint8_t* pixels)
 	for(int y=0; y<kWinWidth; y++) {
 		for(int x=0; x<kWinWidth; x++) {
 			int offset = 3*(x + y*kSurfaceSize);
-			pixels[offset] = pixels[offset]/2 + c.r/2; //Red
-			pixels[offset+1] = pixels[offset+1]/2 + c.g/2; //Green
-			pixels[offset+2] = pixels[offset+2]/2 + c.b/2; // Blue
+			pixels[offset] = pixels[offset] + c.r; //Red
+			pixels[offset+1] = pixels[offset+1] + c.g; //Green
+			pixels[offset+2] = pixels[offset+2] + c.b; // Blue
 		}
 	}
 }
@@ -178,6 +180,36 @@ void HomeWork01App::drawSquare(uint8_t* pixels,int center_x, int center_y, int r
 	}
 }
 
+void HomeWork01App::drawRectangle(uint8_t* pixels,int center_x, int center_y, int width, int height, int lineThickness, Color8u c)
+{
+	if(width <= 0) return;
+	if(height <= 0) return;
+
+	lineThickness = lineThickness/2; // Center the width of the line on the true line
+
+	for(int y=center_y-(height/2)-lineThickness;y<=center_y+(height/2)+lineThickness; y++){
+		for(int x=center_x-(width/2)-lineThickness;x<=center_x+(width/2)+lineThickness; x++){
+
+			if(
+				  (x <= center_x-(width/2)+lineThickness)&&(x >= center_x-(width/2)-lineThickness)
+				||(x <= center_x+(width/2)+lineThickness)&&(x >= center_x+(width/2)-lineThickness)
+				||
+				(y <= center_y-(height/2)+lineThickness)&&(y >= center_y-(height/2)-lineThickness)
+				||(y <= center_y+(height/2)+lineThickness)&&(y >= center_y+(height/2)-lineThickness)
+				) {
+
+			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
+
+			int offset = 3*(x + y*kSurfaceSize); // Why not (y+x*kSurfaceSize)?
+			pixels[offset] = pixels[offset]/2 + c.r/2; //Red
+			pixels[offset+1] = pixels[offset+1]/2 + c.g/2; //Green
+			pixels[offset+2] = pixels[offset+2]/2 + c.b/2; // Blue
+			}
+	}
+	}
+}
+
+
 // Let's rotate that square by pi/4
 void HomeWork01App::drawDiamond(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
 {
@@ -193,14 +225,14 @@ void HomeWork01App::drawDiamond(uint8_t* pixels,int center_x, int center_y, int 
 			if(y < 0 || xLeft < 0 || xRight < 0 || xLeft >= kWinWidth || xRight >= kWinWidth || y >= kWinHeight) continue;
 
 			int indeces = 3*(xLeft + y*kSurfaceSize);
-			pixels[indeces] = pixels[indeces]+c.r;
-			pixels[indeces] = pixels[indeces+1]+c.g;
-			pixels[indeces] = pixels[indeces+2]+c.b;
+			pixels[indeces] = pixels[indeces]/2+c.r/2;
+			pixels[indeces] = pixels[indeces+1]/2+c.g/2;
+			pixels[indeces] = pixels[indeces+2]/2+c.b/2;
 
 			indeces = 3*(xRight + y*kSurfaceSize);
-			pixels[indeces] = pixels[indeces]+c.r;
-			pixels[indeces] = pixels[indeces+1]+c.g;
-			pixels[indeces] = pixels[indeces+2]+c.b;
+			pixels[indeces] = pixels[indeces]/2+c.r/2;
+			pixels[indeces] = pixels[indeces+1]/2+c.g/2;
+			pixels[indeces] = pixels[indeces+2]/2+c.b/2;
 
 
 			if(y<center_y) {
@@ -220,10 +252,11 @@ void HomeWork01App::update()
 	//blackOutWindow(myPixels);
 	currentFrame++;
 	strobe(currentFrame);
-	drawDiamond(myPixels,200, 250, 100, Color(red,green,blue));
+	drawDiamond(myPixels,200, 250, 100, Color(0,0,0));
 
-	drawCircle(myPixels,300, 350, 100, Color(red,green,blue));
-	//drawSquare(myPixels,300, 350, 100, Color(180,180,180));
+	drawCircle(myPixels,300, 350, 100, Color(0,0,0));
+	//drawSquare(myPixels,300, 350, 100, Color(0,0,0));
+	drawRectangle(myPixels,300,100,50,100,5,Color(0,0,0));
 
 
 	//Get our array of pixel information
@@ -234,7 +267,7 @@ void HomeWork01App::update()
 void HomeWork01App::draw()
 {
 	//gl::Texture myTexture = gl::Texture( myPixels);
-	gl::clear(Color(0,0,0));
+	gl::clear(Color(1.0,1.0,1.0));
 	gl::draw(*mySurface_);
 }
 
