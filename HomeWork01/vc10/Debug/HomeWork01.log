@@ -1,4 +1,4 @@
-﻿Build started 9/2/2012 3:35:33 PM.
+﻿Build started 9/4/2012 1:21:56 AM.
      1>Project "C:\Users\Cary\Documents\GitHub\HomeWork01\HomeWork01\vc10\HomeWork01.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\HomeWork01.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -26,4 +26,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:08.06
+Time Elapsed 00:00:08.65
