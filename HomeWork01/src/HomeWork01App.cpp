@@ -9,9 +9,10 @@
 * which means you are free to use, share, and remix is as long as you
 * give attribution.  Commercial uses are allowed.
 * 
+* Welcome to my second C++ application!
+*
 * This project was written for credit in Dr. Brinkman's CSE 274 class at
 * Miami University during the fall semester of 2012.
-* 
 */
 
 
@@ -28,7 +29,20 @@ using namespace std;
 class HomeWork01App : public AppBasic {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
+	/*
+	* mousedown changes the movement of rectangles and toggles blur
+	* when the application window is clicked
+	*
+	* Submitted towards the "mouse interaction" and "animation" requirements
+	* in 2.E
+	*/
+	void mouseDown( MouseEvent event );
+	/*
+	* Update redraws animates rectangles on the screen and
+	* refreshes the blur function.
+	* 
+	* Submitted towards the "animation" requirement in 2.E
+	*/
 	void update();
 	void draw();
 	void presets(Settings* settings);
@@ -39,23 +53,99 @@ private:
 	static const int kSurfaceSize=1024;
 	Surface* mySurface_;
 	uint8_t* myPixels;
-	int disp;	// For animation in update()
-	int count;	// Also for animation in update()
-	int top;	// ""
-	int bottom;	// ""
-	int left;	// ""
-	int right;	// ""
-	bool fast;	// ""
-	void drawCircle(uint8_t* pixels,int x, int y, int r, Color8u c);
-	void drawSquare(uint8_t* pixels,int x, int y, int r, Color8u c);
-	void drawDiamond(uint8_t* pixels,int x, int y, int r, Color8u c);
-	void drawRectangle(uint8_t* pixels,int center_x, int center_y, int rx, int ry, Color8u c);
+
+	// For animation in update
+	int disp;
+	int count;
+	int top;
+	int bottom;
+	int left;
+	int right;
+	bool fast;
+
+	// Makes the Surface black
 	void blackOutWindow(uint8_t* pixels);
+	
+	/*
+	* Creates a gradient that changes from the Color8u c parameter
+	* to white.  The gradient changes smoothly from the top of the
+	* Surface to the bottom and peaks at white twice.
+	*
+	* Submitted towards the "gradient" requirement in 1.A
+	*/
 	void gradient(uint8_t* pixels, Color8u c);
-	void tint(uint8_t* pixels, Color8u t);
+	/*
+	* Draws a filled circle with a gradient effect.
+	*
+	* Credit to Dr. Brinkman's HWO1 project for the idea of using
+	* for loops to read through the array and an "if" statement that
+	* compares by calculating the distance of each pixel using the distance formula.
+	* https://github.com/brinkmwj/HW01
+	* 
+	* Submitted towards the "circle" requirement in 1.A
+	*/
+	void drawCircle(uint8_t* pixels,int x, int y, int r, Color8u c);
+
+	/*
+	* An ancestor to drawRectangle, this function draws a square around
+	* a center point where the radius r is half the length of a side.
+	*/
+	void drawSquare(uint8_t* pixels,int x, int y, int r, Color8u c);
+
+	/*
+	* Draws an empty, square diamond on the Surface.  The r parameter is the distance
+	* from the center of the diamond to any of the corners.
+	* 
+	* Similar to drawRectangle()
+	*/
+	void drawDiamond(uint8_t* pixels,int x, int y, int r, Color8u c);
+	
+	/*
+	* Draws an empty rectangle to the screen in the supplied color.
+	* x and y are the coordinates of the top left corner, height 
+	* extends down from that point.
+	* 
+	* Submitted towards the "rectangle" requirement in 1.A
+	*/
+	void drawRectangle(uint8_t* pixels,int x, int y, int width, int height, Color8u c);
+
+	/*
+	* This drawLine() function is adapted from Bresenham's line algorithm for drawing line segments 
+	* as outlined in the Wikipedia article of the same name:
+	* http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+	* 
+	* That said, this function doesn't work.
+	*/
 	void drawLine(uint8_t* pixels, int x0, int y0, int x1, int y1, Color8u c);
+	
+	/*
+	* This function takes a range of polar coordinates about cartesian point and translates
+	* the end points of the polar "rays" into cartesian points.  Then it calls drawLine(), 
+	* and plots the rays.
+	*
+	* I do not think this function works correctly, but drawLine() does not work either,
+	* so testing is difficult.
+	*/
 	void drawRays(uint8_t* pixels,int center_x, int center_y, int r, int degree_0, int degree_1, Color8u c);
-	void drawRightTriangle(uint8_t* pixels,int x0, int y0,int x1, int y1,Color8u c);
+
+	/*
+	* Tints the Surface by adding the RGB values of Color8u t to
+	* all of the Surface pixels, and limits the Surface's RGB 
+	* values to 255.
+	*/
+	void tint(uint8_t* pixels, Color8u t);
+	/*
+	* This function blurs the Surface picture by averaging the 
+	* individual RGB values of 9x9 kernels sampled from the Surface itself.
+	* 
+	* It uses 4 nested for loops, so it can cause a significant drop in frame rate.
+	* If you click on the application window, blur turns on and the rectangles move 
+	* in longer steps over a wider range.  If you click again, it turns off, the 
+	* framerate accelerates, and the rectangles move more smoothly through smaller ranges.
+	*
+	* Submitted towards the "blur" requirement in 1.B and the "mouse interaction"
+	* requirement of 2.E
+	*/
 	void blur(uint8_t* myPixels);
 };
 
@@ -72,146 +162,10 @@ void HomeWork01App::blackOutWindow(uint8_t* pixels)
 		for(int x = 0; x < kSurfaceSize;x++) {
 
 			int offset = 3*(x + y*kSurfaceSize);
-			pixels[offset] = c.r; //Red
-			pixels[offset+1] = c.g; //Green
-			pixels[offset+2] = c.b; // Blue
+			pixels[offset] = c.r;
+			pixels[offset+1] = c.g;
+			pixels[offset+2] = c.b;
 
-		}
-	}
-}
-
-/*
-Right now, this is almost a verbatim implementation of Dr. Brinkman's drawRings method from his HW01 project.
-I am analyzing it so that I can understand it well enough to improvise later.
-This is why I sometimes used variable names that are unwieldy.
-In short, I have no intention of leaving this method in this form.
-*/
-void HomeWork01App::drawCircle(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
-{
-	if(r <= 0) return;
-	int count = 0;
-	int colorAdd = 0;
-	bool flag = false;
-	int ripple = 3;
-
-	for(int y=center_y-r; y<=center_y+r; y++){
-		for(int x=center_x-r; x<=center_x+r; x++){
-			// Bounds test, to stop out-of-bounds memory access
-			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
-			count++;
-			if(colorAdd >= 255) {
-				flag = true;
-			}
-			if(colorAdd < 0) {
-				flag = false;
-			}
-			if(flag) {
-				colorAdd--;
-			} else {
-				colorAdd++;
-			}
-
-			int distanceFromCenter = (int)sqrt((double)((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y)));
-			if(distanceFromCenter <= r){ 
-				//if((distanceFromCenter/7)%2 == 1 ){  //...(distanceFromCenter/7)
-					ripple = ripple + 2;
-					if(ripple >= 15) {
-						ripple = 3;
-					}
-					
-					if(count = 4) {
-					count = 0;
-					c.r = colorAdd;
-					c.g = colorAdd;
-					c.b = colorAdd;
-				}
-
-						int offset = 3*(x + y*kSurfaceSize);
-						pixels[offset] = pixels[offset]/2 + c.r/2; //Red
-						pixels[offset+1] = pixels[offset+1]/2 + c.g/2; //Green
-						pixels[offset+2] = pixels[offset+2]/2 + c.b/2; // Blue
-					//}
-				}
-			}	
-		}
-	}
-
-
-void HomeWork01App::drawSquare(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
-{
-	if(r <= 0) return;
-
-	for(int y=center_y-r;y<=center_y+r; y++){
-		for(int x=center_x-r;x<=center_x+r; x++){
-			
-			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
-
-			if((x == center_x-r)&&(x == center_x+r)&&(y == center_y-r)&&(y == center_y+r)) {
-
-			int indeces = 3*(x + y*kSurfaceSize); // Why not (y+x*kSurfaceSize)?
-			pixels[indeces] = pixels[indeces]+c.r;
-			pixels[indeces] = pixels[indeces+1]+c.g;
-			pixels[indeces] = pixels[indeces+2]+c.b;
-			}
-	}
-	}
-}
-
-// Let's rotate that square by pi/4
-void HomeWork01App::drawDiamond(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
-{
-
-	int yRad=(int)sqrt((double)(r*r)+(double)(r*r));
-	int xRad=0;
-	if(r <= 0) return;
-
-	for(int y=center_y-yRad;y<=center_y+yRad; y++){
-		//for(int x=center_x;x<=center_x+xRad; x++){
-			int xLeft=center_x-xRad;
-			int xRight=center_x+xRad;
-
-			if(y < 0 || xLeft < 0 || xRight < 0 || xLeft >= kWinWidth || xRight >= kWinWidth || y >= kWinHeight) continue;
-
-			//if((x == center_x-xRad)||(x == center_x+xRad)) {
-
-			int indeces = 3*(xLeft + y*kSurfaceSize);
-			pixels[indeces] = pixels[indeces]+c.r;
-			pixels[indeces] = pixels[indeces+1]+c.g;
-			pixels[indeces] = pixels[indeces+2]+c.b;
-
-			indeces = 3*(xRight + y*kSurfaceSize);
-			pixels[indeces] = pixels[indeces]+c.r;
-			pixels[indeces] = pixels[indeces+1]+c.g;
-			pixels[indeces] = pixels[indeces+2]+c.b;
-
-			//}
-			if(y<center_y) {
-			xRad--;
-			} else if(y>=center_y) {
-				xRad++;
-			}
-		//}
-	}
-}
-
-// Now we'll extend that square into a rectangle
-void HomeWork01App::drawRectangle(uint8_t* pixels,int center_x, int center_y, int rx, int ry, Color8u c)
-{
-	if(rx <= 0) return;
-	if(ry <= 0) return;
-
-	for(int y=center_y-ry;y<=center_y+ry; y++){
-		for(int x=center_x-rx;x<=center_x+rx; x++){
-			
-			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
-
-			if((x == center_x-rx)||(x == center_x+rx)||(y == center_y-ry)||(y == center_y+ry)) {
-
-			int indeces = 3*(x + y*kSurfaceSize);
-			pixels[indeces] = pixels[indeces]+c.r;
-			pixels[indeces] = pixels[indeces+1]+c.g;
-			pixels[indeces] = pixels[indeces+2]+c.b;
-			}
 		}
 	}
 }
@@ -248,21 +202,159 @@ void HomeWork01App::gradient(uint8_t* pixels, Color8u c)
 			}
 
 			int offset = 3*(x + y*kSurfaceSize);
-			pixels[offset] = c.r; //Red
-			pixels[offset+1] = c.g; //Green
-			pixels[offset+2] = c.b; // Blue
+			pixels[offset] = c.r;
+			pixels[offset+1] = c.g;
+			pixels[offset+2] = c.b;
 
 		}
 	}
 }
 
+void HomeWork01App::drawCircle(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
+{
+	if(r <= 0) return;
+	int count = 0;
+	int colorAdd = 0;
+	bool flag = false;
+	int ripple = 3;
+
+	for(int y=center_y-r; y<=center_y+r; y++){
+		for(int x=center_x-r; x<=center_x+r; x++){
+			// Bounds test, to stop out-of-bounds memory access
+			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
+			count++;
+			if(colorAdd >= 255) {
+				flag = true;
+			}
+			if(colorAdd < 0) {
+				flag = false;
+			}
+			if(flag) {
+				colorAdd--;
+			} else {
+				colorAdd++;
+			}
+
+			int distanceFromCenter = (int)sqrt((double)((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y)));
+			if(distanceFromCenter <= r){ 
+					ripple = ripple + 2;
+					if(ripple >= 15) {
+						ripple = 3;
+					}
+					
+					if(count = 4) {
+					count = 0;
+					c.r = colorAdd;
+					c.g = colorAdd;
+					c.b = colorAdd;
+				}
+
+						int offset = 3*(x + y*kSurfaceSize);
+						pixels[offset] = pixels[offset]/2 + c.r/2;
+						pixels[offset+1] = pixels[offset+1]/2 + c.g/2;
+						pixels[offset+2] = pixels[offset+2]/2 + c.b/2;
+				}
+			}	
+		}
+	}
+
 /*
-This drawLine() function is adapted from Bresenham's line algorithm for drawing line segments 
-as outlined in the Wikipedia article of the same name:
-http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+* Draws an empty square.
+*/
+void HomeWork01App::drawSquare(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
+{
+	if(r <= 0) return;
+
+	for(int y=center_y-r;y<=center_y+r; y++){
+		for(int x=center_x-r;x<=center_x+r; x++){
+			
+			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
+
+			if((x == center_x-r)&&(x == center_x+r)&&(y == center_y-r)&&(y == center_y+r)) {
+
+			int indeces = 3*(x + y*kSurfaceSize); // Why not (y+x*kSurfaceSize)?
+			pixels[indeces] = pixels[indeces]+c.r;
+			pixels[indeces] = pixels[indeces+1]+c.g;
+			pixels[indeces] = pixels[indeces+2]+c.b;
+			}
+	}
+	}
+}
+
+/*
+* Draws an empty diamond
+*/
+void HomeWork01App::drawDiamond(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
+{
+
+	int yRad=(int)sqrt((double)(r*r)+(double)(r*r));
+	int xRad=0;
+	if(r <= 0) return;
+
+	for(int y=center_y-yRad;y<=center_y+yRad; y++){
+		//for(int x=center_x;x<=center_x+xRad; x++){
+			int xLeft=center_x-xRad;
+			int xRight=center_x+xRad;
+
+			if(y < 0 || xLeft < 0 || xRight < 0 || xLeft >= kWinWidth || xRight >= kWinWidth || y >= kWinHeight) continue;
+
+			//if((x == center_x-xRad)||(x == center_x+xRad)) {
+
+			int indeces = 3*(xLeft + y*kSurfaceSize);
+			pixels[indeces] = pixels[indeces]+c.r;
+			pixels[indeces] = pixels[indeces+1]+c.g;
+			pixels[indeces] = pixels[indeces+2]+c.b;
+
+			indeces = 3*(xRight + y*kSurfaceSize);
+			pixels[indeces] = pixels[indeces]+c.r;
+			pixels[indeces] = pixels[indeces+1]+c.g;
+			pixels[indeces] = pixels[indeces+2]+c.b;
+
+			//}
+			if(y<center_y) {
+			xRad--;
+			} else if(y>=center_y) {
+				xRad++;
+			}
+		//}
+	}
+}
+
+/*
+* Draws an empty rectangle
+*/
+void HomeWork01App::drawRectangle(uint8_t* pixels,int x, int y, int width, int height, Color8u c)
+{
+	if(width <= 0) return;
+	if(height <= 0) return;
+
+	for(int ky=y-height;ky<=y+height; ky++){
+		for(int kx=x-width;kx<=x+width;kx++){
+			
+			if(ky < 0 || kx < 0 || kx >= kWinWidth || ky >= kWinHeight) continue;
+
+			if((kx == x-width)||(kx == x+width)||(ky == y-height)||(ky == y+height)) {
+
+			int indeces = 3*(kx + ky*kSurfaceSize);
+			pixels[indeces] = pixels[indeces]+c.r;
+			pixels[indeces] = pixels[indeces+1]+c.g;
+			pixels[indeces] = pixels[indeces+2]+c.b;
+			}
+		}
+	}
+}
+
+/*
+* This drawLine() function is adapted from Bresenham's line algorithm for drawing line segments 
+* as outlined in the Wikipedia article of the same name:
+* http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+* 
+* Currently, it doesn't work.
 */
 void HomeWork01App::drawLine(uint8_t* pixels, int x0, int y0, int x1, int y1, Color8u c)
 {
+	// Attempt at adapting to floats instead of avoiding them
+	// as Bresenham avoided them.
 	/*
 	for(float x = 0; x < 1;x=x0+(x/(x1-x))) {
 		
@@ -340,6 +432,21 @@ void HomeWork01App::drawLine(uint8_t* pixels, int x0, int y0, int x1, int y1, Co
 	
 }
 
+/*
+* Buggy and calls drawLine()
+*/
+void HomeWork01App::drawRays(uint8_t* pixels,int center_x, int center_y, int r, int degree_0, int degree_1, Color8u c) {
+
+	for(degree_0; degree_0 <= degree_1;degree_0++) {
+
+		double rad = (degree_0*((3.14159)/180.0));
+		int end_x = ((int)(r*cos((rad))));
+		int end_y = ((int)(r*sin(rad)));
+
+		drawLine(pixels,center_x,center_y,end_x,end_y,c);
+	}
+}
+
 void HomeWork01App::tint(uint8_t* pixels, Color8u t)
 {
 
@@ -365,57 +472,9 @@ void HomeWork01App::tint(uint8_t* pixels, Color8u t)
 		}
 	}
 }
-
-void HomeWork01App::drawRays(uint8_t* pixels,int center_x, int center_y, int r, int degree_0, int degree_1, Color8u c) {
-
-	for(degree_0; degree_0 <= degree_1;degree_0++) {
-
-		double rad = (degree_0*((3.14159)/180.0));
-		int end_x = ((int)(r*cos((rad))));
-		int end_y = ((int)(r*sin(rad)));
-
-		drawLine(pixels,center_x,center_y,end_x,end_y,c);
-	}
-}
-
-void HomeWork01App::drawRightTriangle(uint8_t* pixels,int x0, int y0,int x1, int y1,Color8u c) {
-
-	if(y1 < y0) {
-		int temp = y1;
-		y1 = y0;
-		y0 = temp;
-	}
-	if(x1 < x0) {
-		int temp = y1;
-		x1 = x0;
-		x0 = temp;
-	}
-	int height = y1 - y0;
-	int width = x1 - x0;
-	bool flag = true;
-	int r = x0;
-
-	for(int y = y0; y <= y1; y++) {
-
-		int index = 3*(r + y*kSurfaceSize);
-
-		myPixels[index] = c.r;
-		myPixels[index+1] = c.g;
-		myPixels[index+2] = c.b;
-
-		if(r >= x0 + width) {
-			flag = false;
-		}
-		if(flag) {
-			r++;
-		} else if( r <= 0) continue;
-		if(!flag) {
-			r--;
-		}
-	}
-}
-
-// Credit to Dr. Brinkman
+/*
+* This blur function works effectively, but it is very, very taxing.
+*/
 void HomeWork01App::blur(uint8_t* myPixels) {
 
 	static uint8_t copyArray[3*kSurfaceSize*kSurfaceSize];
@@ -445,63 +504,12 @@ void HomeWork01App::blur(uint8_t* myPixels) {
 			myPixels[index+2] = blueSum;
 		}
 	}
-	/*
-		static uint8_t work_buffer[3*kSurfaceSize*kSurfaceSize];
-		//This memcpy is not much of a performance hit.
-		memcpy(work_buffer,myPixels,3*kSurfaceSize*kSurfaceSize);
-
-		//These are used in right shifts.
-		//Both of these kernels actually darken as well as blur.
-		uint8_t kernelA[9] =
-			{4,3,4,
-			4,3,4,
-			4,3,4};
-		
-		uint8_t total_red =0;
-		uint8_t total_green=0;
-		uint8_t total_blue =0;
-			int index;
-			int k;
-			int y,x,ky,kx;
-				
-		//Visit every pixel in the image, except the ones on the edge.
-		//TODO Special purpose logic to handle the edge cases
-			for( y=1;y<kWinHeight-1;y++){
-				for( x=1;x<kWinWidth-1;x++){
-
-
-					index = 3*(x + y*kWinWidth);
-				if(work_buffer[index] < 256/3){
-		//Compute the convolution of the kernel with the region around the current pixel
-		//I use ints for the totals and the kernel to avoid overflow
-					total_red=0;
-					total_green=0;
-					total_blue=0;
-					
-					for( ky=-1;ky<=1;ky++){
-						for( kx=-1;kx<=1;kx++){
-							index = 3*(x + kx + (y+ky)*kSurfaceSize);
-							k = kernelA[kx+1 + (ky+1)*3];
-							total_red += (work_buffer[index ] >> k);
-							total_green += (work_buffer[index+1] >> k);
-							total_blue += (work_buffer[index+2] >> k);
-						}
-					}
-					
-				}
-		
-			index = 3*(x + y*kSurfaceSize);
-			myPixels[index] = total_red;
-			myPixels[index+1] = total_green;
-			myPixels[index+2] = total_blue;
-			}
-		}
-		*/
 }
 
 
 void HomeWork01App::setup()
 {
+	// For animation in update
 	top = 146;
 	bottom = 354;
 	left = 209;
@@ -509,13 +517,16 @@ void HomeWork01App::setup()
 	disp = 4;
 	fast = false;
 	count = 0;
+
 	// Initialize mySurface_
 	mySurface_ = new Surface(kSurfaceSize,kSurfaceSize,false);
 	myPixels = (*mySurface_).getData();
 
+	// Gradient hides this function
 	//blackOutWindow(myPixels);
 
 	gradient(myPixels, Color8u(0,0,255));
+
 	drawCircle(myPixels,313, 250, 100, Color8u(0,0,255));
 	drawDiamond(myPixels,313, 250, 200, Color8u(180,255,180));
 	drawDiamond(myPixels,313, 250, 150, Color8u(180,255,180));
@@ -545,15 +556,9 @@ void HomeWork01App::setup()
 	drawRectangle(myPixels,right-8, 250, 3, 367, Color8u(180,180,180));
 	drawRectangle(myPixels,right-12, 250, 3, 367, Color8u(180,180,180));
 
-
-	//drawRightTriangle(myPixels,100,100,200,105,Color(255,50,50));
-	tint(myPixels, Color8u(40,0,40));
-	//drawLine(myPixels,100,100,110,320,Color(255,255,255));
-	//drawLine(myPixels,100,100,120,310,Color(255,255,255));
-	//drawRays(myPixels,400,500,50,0,360,Color8u(255,255,255));
-	//blur(myPixels);
-	
+	tint(myPixels, Color8u(40,0,40));	
 }
+
 
 void HomeWork01App::mouseDown( MouseEvent event )
 {
