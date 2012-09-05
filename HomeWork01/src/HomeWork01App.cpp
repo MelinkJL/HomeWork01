@@ -2,7 +2,7 @@
 * @file HomeWork01.cpp
 * 
 * @author Cary Willard
-* @date 2012-08-28
+* @date 09-05-2012
 * 
 * @note This file is (c) 2012.  It is licensed under the
 * CC gv 3.0 license (http://creativecommons.org/licenses/by/3.0/),
@@ -11,13 +11,7 @@
 * 
 * This project was written for credit in Dr. Brinkman's CSE 274 class at
 * Miami University during the fall semester of 2012.
-*
-* This project was heavily influenced by Dr. Brinkman's HW01 project:
-* https://github.com/brinkmwj/HW01
 * 
-* This project fulfills the following requirements for homework 1:
-* 
-*
 */
 
 
@@ -45,6 +39,13 @@ private:
 	static const int kSurfaceSize=1024;
 	Surface* mySurface_;
 	uint8_t* myPixels;
+	int disp;	// For animation in update()
+	int count;	// Also for animation in update()
+	int top;	// ""
+	int bottom;	// ""
+	int left;	// ""
+	int right;	// ""
+	bool fast;	// ""
 	void drawCircle(uint8_t* pixels,int x, int y, int r, Color8u c);
 	void drawSquare(uint8_t* pixels,int x, int y, int r, Color8u c);
 	void drawDiamond(uint8_t* pixels,int x, int y, int r, Color8u c);
@@ -339,7 +340,6 @@ void HomeWork01App::drawLine(uint8_t* pixels, int x0, int y0, int x1, int y1, Co
 	
 }
 
-
 void HomeWork01App::tint(uint8_t* pixels, Color8u t)
 {
 
@@ -418,6 +418,34 @@ void HomeWork01App::drawRightTriangle(uint8_t* pixels,int x0, int y0,int x1, int
 // Credit to Dr. Brinkman
 void HomeWork01App::blur(uint8_t* myPixels) {
 
+	static uint8_t copyArray[3*kSurfaceSize*kSurfaceSize];
+	memcpy(copyArray,myPixels,3*kSurfaceSize*kSurfaceSize);
+
+	uint8_t redSum = 0;
+	uint8_t greenSum = 0;
+	uint8_t blueSum = 0;
+	int index = 0;
+
+	for(int y = 1; y < kSurfaceSize-1;y++) {
+		for(int x = 1; x < kSurfaceSize-1; x++) {
+			redSum = 0;
+			greenSum = 0;
+			blueSum = 0;
+			for(int ky = -1; ky < 2;ky++) {
+				for(int kx = -1; kx < 2; kx++) {
+					index = 3*(x+kx+(y+ky)*kSurfaceSize);
+					redSum = redSum + copyArray[index]/9.0;
+					greenSum = greenSum + copyArray[index+1]/9.0;
+					blueSum = blueSum + copyArray[index+2]/9.0;
+				}
+			}
+			index = 3*(x+y*kSurfaceSize);
+			myPixels[index] = redSum;
+			myPixels[index+1] = greenSum;
+			myPixels[index+2] = blueSum;
+		}
+	}
+	/*
 		static uint8_t work_buffer[3*kSurfaceSize*kSurfaceSize];
 		//This memcpy is not much of a performance hit.
 		memcpy(work_buffer,myPixels,3*kSurfaceSize*kSurfaceSize);
@@ -428,7 +456,6 @@ void HomeWork01App::blur(uint8_t* myPixels) {
 			{4,3,4,
 			4,3,4,
 			4,3,4};
-		
 		
 		uint8_t total_red =0;
 		uint8_t total_green=0;
@@ -469,48 +496,58 @@ void HomeWork01App::blur(uint8_t* myPixels) {
 			myPixels[index+2] = total_blue;
 			}
 		}
+		*/
 }
 
 
 void HomeWork01App::setup()
 {
+	top = 146;
+	bottom = 354;
+	left = 209;
+	right = 429;
+	disp = 4;
+	fast = false;
+	count = 0;
 	// Initialize mySurface_
 	mySurface_ = new Surface(kSurfaceSize,kSurfaceSize,false);
 	myPixels = (*mySurface_).getData();
-	blackOutWindow(myPixels);
+
+	//blackOutWindow(myPixels);
+
 	gradient(myPixels, Color8u(0,0,255));
 	drawCircle(myPixels,313, 250, 100, Color8u(0,0,255));
-	drawSquare(myPixels,313, 250, 100, Color8u(255,255,255));
-	//drawSquare(myPixels,468, 250, 100, Color8u(255,255,255));
-
 	drawDiamond(myPixels,313, 250, 200, Color8u(180,255,180));
 	drawDiamond(myPixels,313, 250, 150, Color8u(180,255,180));
 	drawDiamond(myPixels,313, 250, 100, Color8u(180,255,180));
 	
+	//drawSquare(myPixels,313, 250, 100, Color8u(255,255,255));
+	//drawSquare(myPixels,468, 250, 100, Color8u(255,255,255));
+
 	//Top
-	drawRectangle(myPixels,313, 146, 367, 3, Color8u(180,180,180));
-	drawRectangle(myPixels,313, 142, 367, 3, Color8u(180,180,180));
-	drawRectangle(myPixels,313, 138, 367, 3, Color8u(180,180,180));
-	drawRectangle(myPixels,313, 134, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-4, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-8, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-12, 367, 3, Color8u(180,180,180));
 	//Bottom
-	drawRectangle(myPixels,313, 354, 367, 3, Color8u(180,180,180));
-	drawRectangle(myPixels,313, 358, 367, 3, Color8u(180,180,180));
-	drawRectangle(myPixels,313, 362, 367, 3, Color8u(180,180,180));
-	drawRectangle(myPixels,313, 366, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+4, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+8, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+12, 367, 3, Color8u(180,180,180));
 	//Left
-	drawRectangle(myPixels,209, 250, 3, 367, Color8u(180,180,180));
-	drawRectangle(myPixels,205, 250, 3, 367, Color8u(180,180,180));
-	drawRectangle(myPixels,201, 250, 3, 367, Color8u(180,180,180));
-	drawRectangle(myPixels,197, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-4, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-8, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-12, 250, 3, 367, Color8u(180,180,180));
 	//Right
-	drawRectangle(myPixels,429, 250, 3, 367, Color8u(180,180,180));
-	drawRectangle(myPixels,425, 250, 3, 367, Color8u(180,180,180));
-	drawRectangle(myPixels,421, 250, 3, 367, Color8u(180,180,180));
-	drawRectangle(myPixels,417, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-4, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-8, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-12, 250, 3, 367, Color8u(180,180,180));
 
 
 	//drawRightTriangle(myPixels,100,100,200,105,Color(255,50,50));
-	tint(myPixels, Color8u(35,0,35));
+	tint(myPixels, Color8u(40,0,40));
 	//drawLine(myPixels,100,100,110,320,Color(255,255,255));
 	//drawLine(myPixels,100,100,120,310,Color(255,255,255));
 	//drawRays(myPixels,400,500,50,0,360,Color8u(255,255,255));
@@ -520,16 +557,84 @@ void HomeWork01App::setup()
 
 void HomeWork01App::mouseDown( MouseEvent event )
 {
+	fast = !fast;
 }
 
 void HomeWork01App::update()
 {
+	if(fast) {
+		disp = 8;
+	} else {
+		disp = 4;
+	}
+
+	count++;
+
+	gradient(myPixels, Color8u(0,0,255));
+	drawCircle(myPixels,313, 250, 100, Color8u(0,0,255));
+	drawDiamond(myPixels,313, 250, 200, Color8u(180,255,180));
+	drawDiamond(myPixels,313, 250, 150, Color8u(180,255,180));
+	drawDiamond(myPixels,313, 250, 100, Color8u(180,255,180));
+
+	if((count%116) < 58){
+		//Top
+		top = top + disp;
+	drawRectangle(myPixels,313, top, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-4, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-8, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-12, 367, 3, Color8u(180,180,180));
+	//Bottom
+	bottom = bottom - disp;
+	drawRectangle(myPixels,313, bottom, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+4, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+8, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+12, 367, 3, Color8u(180,180,180));
+	//Left
+	left = left + disp;
+	drawRectangle(myPixels,left, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-4, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-8, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-12, 250, 3, 367, Color8u(180,180,180));
+	//Right
+	right = right - disp;
+	drawRectangle(myPixels,right, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-4, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-8, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-12, 250, 3, 367, Color8u(180,180,180));
+	} else {
+	//Top
+	top = top - disp;
+	drawRectangle(myPixels,313, top, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-4, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-8, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, top-12, 367, 3, Color8u(180,180,180));
+	//Bottom
+	bottom = bottom + disp;
+	drawRectangle(myPixels,313, bottom, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+4, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+8, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, bottom+12, 367, 3, Color8u(180,180,180));
+	//Left
+	left = left -disp;
+	drawRectangle(myPixels,left, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-4, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-8, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,left-12, 250, 3, 367, Color8u(180,180,180));
+	//Right
+	right = right + disp;
+	drawRectangle(myPixels,right, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-4, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-8, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,right-12, 250, 3, 367, Color8u(180,180,180));
+	}
+	tint(myPixels, Color8u(40,0,40));
+	if(fast) {
+		blur(myPixels);
+	}
 }
 
 void HomeWork01App::draw()
 {
-	//gl::Texture myTexture = gl::Texture( myPixels);
-	gl::clear(Color8u(0,0,0));
 	gl::draw(*mySurface_);
 }
 

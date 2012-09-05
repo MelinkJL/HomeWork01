@@ -1,11 +1,14 @@
-﻿Build started 9/4/2012 11:19:20 PM.
+﻿Build started 9/5/2012 12:53:45 AM.
      1>Project "C:\Users\Cary\Documents\GitHub\HomeWork01\HomeWork01\vc10\HomeWork01.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\HomeWork01.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\include /I..\..\..\..\..\..\..\Cinder\cinder_0.8.4_vc2010\include /I..\..\..\..\..\..\..\Cinder\cinder_0.8.4_vc2010\boost /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\src\HomeWork01App.cpp
          HomeWork01App.cpp
-     1>c:\users\cary\documents\github\homework01\homework01\src\homework01app.cpp(336): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\cary\documents\github\homework01\homework01\src\homework01app.cpp(343): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\cary\documents\github\homework01\homework01\src\homework01app.cpp(443): warning C4244: '=' : conversion from 'double' to 'uint8_t', possible loss of data
+     1>c:\users\cary\documents\github\homework01\homework01\src\homework01app.cpp(444): warning C4244: '=' : conversion from 'double' to 'uint8_t', possible loss of data
+     1>c:\users\cary\documents\github\homework01\homework01\src\homework01app.cpp(445): warning C4244: '=' : conversion from 'double' to 'uint8_t', possible loss of data
        ResourceCompile:
          All outputs are up-to-date.
        ManifestResourceCompile:
@@ -27,4 +30,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:09.50
+Time Elapsed 00:00:10.66
