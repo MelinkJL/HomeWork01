@@ -54,6 +54,8 @@ private:
 	void tint(uint8_t* pixels, Color8u t);
 	void drawLine(uint8_t* pixels, int x0, int y0, int x1, int y1, Color8u c);
 	void drawRays(uint8_t* pixels,int center_x, int center_y, int r, int degree_0, int degree_1, Color8u c);
+	void drawRightTriangle(uint8_t* pixels,int x0, int y0,int x1, int y1,Color8u c);
+	void blur(uint8_t* myPixels);
 };
 
 void HomeWork01App::presets(Settings* settings) {
@@ -75,7 +77,6 @@ void HomeWork01App::blackOutWindow(uint8_t* pixels)
 
 		}
 	}
-
 }
 
 /*
@@ -111,7 +112,7 @@ void HomeWork01App::drawCircle(uint8_t* pixels,int center_x, int center_y, int r
 
 			int distanceFromCenter = (int)sqrt((double)((x-center_x)*(x-center_x) + (y-center_y)*(y-center_y)));
 			if(distanceFromCenter <= r){ 
-				if((distanceFromCenter/7)%2 == 1 ){  //...(distanceFromCenter/7)
+				//if((distanceFromCenter/7)%2 == 1 ){  //...(distanceFromCenter/7)
 					ripple = ripple + 2;
 					if(ripple >= 15) {
 						ripple = 3;
@@ -128,7 +129,7 @@ void HomeWork01App::drawCircle(uint8_t* pixels,int center_x, int center_y, int r
 						pixels[offset] = pixels[offset]/2 + c.r/2; //Red
 						pixels[offset+1] = pixels[offset+1]/2 + c.g/2; //Green
 						pixels[offset+2] = pixels[offset+2]/2 + c.b/2; // Blue
-					}
+					//}
 				}
 			}	
 		}
@@ -144,7 +145,7 @@ void HomeWork01App::drawSquare(uint8_t* pixels,int center_x, int center_y, int r
 			
 			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
 
-			if((x == center_x-r)||(x == center_x+r)||(y == center_y-r)||(y == center_y+r)) {
+			if((x == center_x-r)&&(x == center_x+r)&&(y == center_y-r)&&(y == center_y+r)) {
 
 			int indeces = 3*(x + y*kSurfaceSize); // Why not (y+x*kSurfaceSize)?
 			pixels[indeces] = pixels[indeces]+c.r;
@@ -182,7 +183,6 @@ void HomeWork01App::drawDiamond(uint8_t* pixels,int center_x, int center_y, int 
 			pixels[indeces] = pixels[indeces+1]+c.g;
 			pixels[indeces] = pixels[indeces+2]+c.b;
 
-
 			//}
 			if(y<center_y) {
 			xRad--;
@@ -206,7 +206,7 @@ void HomeWork01App::drawRectangle(uint8_t* pixels,int center_x, int center_y, in
 
 			if((x == center_x-rx)||(x == center_x+rx)||(y == center_y-ry)||(y == center_y+ry)) {
 
-			int indeces = 3*(x + y*kSurfaceSize); // Why not (y+x*kSurfaceSize)?
+			int indeces = 3*(x + y*kSurfaceSize);
 			pixels[indeces] = pixels[indeces]+c.r;
 			pixels[indeces] = pixels[indeces+1]+c.g;
 			pixels[indeces] = pixels[indeces+2]+c.b;
@@ -217,7 +217,7 @@ void HomeWork01App::drawRectangle(uint8_t* pixels,int center_x, int center_y, in
 
 void HomeWork01App::gradient(uint8_t* pixels, Color8u c)
 {
-	//Color8u c = Color8u(200,200,200);
+
 	int count = 0;
 	int colorAdd = 0;
 	bool flag = false;
@@ -229,7 +229,7 @@ void HomeWork01App::gradient(uint8_t* pixels, Color8u c)
 			if(count==((int)(255/kSurfaceSize))) {
 				count = 0;
 				
-				if(colorAdd == 255) {
+				if(colorAdd == 125) {
 					flag = true;
 				}
 				if(colorAdd == 0) {
@@ -263,64 +263,80 @@ http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 void HomeWork01App::drawLine(uint8_t* pixels, int x0, int y0, int x1, int y1, Color8u c)
 {
 	/*
-	if(x0 > x1) {
-		int temp = x0; 
-		x0 = x1;
-		x1 = temp;
-	}
-	if(y0 > y1) {
-		int temp = y0; 
-		y0 = y1;
-		y1 = temp;
+	for(float x = 0; x < 1;x=x0+(x/(x1-x))) {
+		
+		int indeces = 3*(y + x*kSurfaceSize);
+		pixels[indeces] = c.r;
+		pixels[indeces+1] = c.g;
+		pixels[indeces+2] = c.b;
 	}
 	*/
 
-	int sx;
-	int sy;
-
-	int dx = abs(x1 - x0);
-	int dy = abs(y1 - y0);
-
-	if(x0 < x1) {
-		sx = 1;
-	} else {
-		sx = -1;
+	
+	bool steep = abs(y1 - y0) > abs(x1 - x0);
+	if(steep) {
+		// Swap x0,y0
+		int temp = x0;
+		x0 = y0;
+		y0= temp;
 	}
+	if(x0 > x1) {
+		// Swap x0,x1
+		int temp = x0;
+		x0 = x1;
+		x1 = temp;
+
+		// Swap y0,y1
+		temp = y0;
+		y0 = y1;
+		y1 = temp;
+	}
+	int dx = x1-x0;
+	int dy = abs(y1-y0);
+	float error = 0;  // May work better as doubles
+	float dError = (float)(dy/dx);
+	int yStep;
+	int y = y0;
 	if(y0 < y1) {
-		sy = 1;
+		yStep = 1;
 	} else {
-		sy = -1;
+		yStep = -1;
 	}
+	for(int x = x0; x <= x1; x++) {
+		if(steep) {
 
-	int err = dx - dy;
-
-	for(x0; x0 <= x1;x0++) {
-		for(y0;y0 <= y1; y0++) {
-			// Don't plot out of bounds
 			if(x0 < 0 || y0 < 0 || x1 < 0 || y1 < 0
 				|| x0 > kSurfaceSize
-				|| y0 > kSurfaceSize  // Possibly contains unnecessary code
+				|| y0 > kSurfaceSize  // Probably contains unnecessary code
 				|| x1 > kSurfaceSize
 				|| y1 > kSurfaceSize) continue;
-			// Plot x,y
-			int indeces = 3*(x0 + y0*kSurfaceSize);
+
+			//plot(y,x);
+			int indeces = 3*(y + x*kSurfaceSize);
 			pixels[indeces] = c.r;
 			pixels[indeces+1] = c.g;
 			pixels[indeces+2] = c.b;
+		} else {
 
-			if((x0 == x1)&&(y0 == y1)) continue;
-			int e2 = 2*err;
-			if(e2 > (-1*dy)) {
-				err = err - dy;
-				x0 = x0 + sx;
-			}
-			if(e2 < dx){
-				err = err + dx;
-				y0 = y0 + sy;
-			}
+			if(x0 < 0 || y0 < 0 || x1 < 0 || y1 < 0
+				|| x0 > kSurfaceSize
+				|| y0 > kSurfaceSize  // Probably contains unnecessary code
+				|| x1 > kSurfaceSize
+				|| y1 > kSurfaceSize) continue;
+
+			// plot(x,y)
+			int indeces = 3*(x + y*kSurfaceSize);
+			pixels[indeces] = c.r;
+			pixels[indeces+1] = c.g;
+			pixels[indeces+2] = c.b;
+		}
+		error = error + dError;
+		if(error >= 0.5) {
+			y = y+yStep;
+			error = error - 1.0;
 		}
 	}
-
+	
 }
 
 
@@ -362,21 +378,143 @@ void HomeWork01App::drawRays(uint8_t* pixels,int center_x, int center_y, int r, 
 	}
 }
 
+void HomeWork01App::drawRightTriangle(uint8_t* pixels,int x0, int y0,int x1, int y1,Color8u c) {
+
+	if(y1 < y0) {
+		int temp = y1;
+		y1 = y0;
+		y0 = temp;
+	}
+	if(x1 < x0) {
+		int temp = y1;
+		x1 = x0;
+		x0 = temp;
+	}
+	int height = y1 - y0;
+	int width = x1 - x0;
+	bool flag = true;
+	int r = x0;
+
+	for(int y = y0; y <= y1; y++) {
+
+		int index = 3*(r + y*kSurfaceSize);
+
+		myPixels[index] = c.r;
+		myPixels[index+1] = c.g;
+		myPixels[index+2] = c.b;
+
+		if(r >= x0 + width) {
+			flag = false;
+		}
+		if(flag) {
+			r++;
+		} else if( r <= 0) continue;
+		if(!flag) {
+			r--;
+		}
+	}
+}
+
+// Credit to Dr. Brinkman
+void HomeWork01App::blur(uint8_t* myPixels) {
+
+		static uint8_t work_buffer[3*kSurfaceSize*kSurfaceSize];
+		//This memcpy is not much of a performance hit.
+		memcpy(work_buffer,myPixels,3*kSurfaceSize*kSurfaceSize);
+
+		//These are used in right shifts.
+		//Both of these kernels actually darken as well as blur.
+		uint8_t kernelA[9] =
+			{4,3,4,
+			4,3,4,
+			4,3,4};
+		
+		
+		uint8_t total_red =0;
+		uint8_t total_green=0;
+		uint8_t total_blue =0;
+			int index;
+			int k;
+			int y,x,ky,kx;
+				
+		//Visit every pixel in the image, except the ones on the edge.
+		//TODO Special purpose logic to handle the edge cases
+			for( y=1;y<kWinHeight-1;y++){
+				for( x=1;x<kWinWidth-1;x++){
+
+
+					index = 3*(x + y*kWinWidth);
+				if(work_buffer[index] < 256/3){
+		//Compute the convolution of the kernel with the region around the current pixel
+		//I use ints for the totals and the kernel to avoid overflow
+					total_red=0;
+					total_green=0;
+					total_blue=0;
+					
+					for( ky=-1;ky<=1;ky++){
+						for( kx=-1;kx<=1;kx++){
+							index = 3*(x + kx + (y+ky)*kSurfaceSize);
+							k = kernelA[kx+1 + (ky+1)*3];
+							total_red += (work_buffer[index ] >> k);
+							total_green += (work_buffer[index+1] >> k);
+							total_blue += (work_buffer[index+2] >> k);
+						}
+					}
+					
+				}
+		
+			index = 3*(x + y*kSurfaceSize);
+			myPixels[index] = total_red;
+			myPixels[index+1] = total_green;
+			myPixels[index+2] = total_blue;
+			}
+		}
+}
+
+
 void HomeWork01App::setup()
 {
 	// Initialize mySurface_
 	mySurface_ = new Surface(kSurfaceSize,kSurfaceSize,false);
 	myPixels = (*mySurface_).getData();
 	blackOutWindow(myPixels);
-	//gradient(myPixels, Color8u(0,0,0));
-	//drawCircle(myPixels,313, 250, 100, Color8u(0,180,0));
-	//drawSquare(myPixels,300, 350, 100, Color8u(180,180,180));
-	//drawDiamond(myPixels,300, 100, 100, Color8u(180,255,180));
-	//drawRectangle(myPixels,300, 350, 100, 200, Color8u(180,180,180));
-	//tint(myPixels, Color8u(0,50,0));
-	drawLine(myPixels,100,100,200,200,Color(255,255,255));
-	drawLine(myPixels,100,200,200,100,Color(255,255,255));
-	drawRays(myPixels,313,350,100,0,360,Color8u(255,255,255));
+	gradient(myPixels, Color8u(0,0,255));
+	drawCircle(myPixels,313, 250, 100, Color8u(0,0,255));
+	drawSquare(myPixels,313, 250, 100, Color8u(255,255,255));
+	//drawSquare(myPixels,468, 250, 100, Color8u(255,255,255));
+
+	drawDiamond(myPixels,313, 250, 200, Color8u(180,255,180));
+	drawDiamond(myPixels,313, 250, 150, Color8u(180,255,180));
+	drawDiamond(myPixels,313, 250, 100, Color8u(180,255,180));
+	
+	//Top
+	drawRectangle(myPixels,313, 146, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, 142, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, 138, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, 134, 367, 3, Color8u(180,180,180));
+	//Bottom
+	drawRectangle(myPixels,313, 354, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, 358, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, 362, 367, 3, Color8u(180,180,180));
+	drawRectangle(myPixels,313, 366, 367, 3, Color8u(180,180,180));
+	//Left
+	drawRectangle(myPixels,209, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,205, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,201, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,197, 250, 3, 367, Color8u(180,180,180));
+	//Right
+	drawRectangle(myPixels,429, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,425, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,421, 250, 3, 367, Color8u(180,180,180));
+	drawRectangle(myPixels,417, 250, 3, 367, Color8u(180,180,180));
+
+
+	//drawRightTriangle(myPixels,100,100,200,105,Color(255,50,50));
+	tint(myPixels, Color8u(35,0,35));
+	//drawLine(myPixels,100,100,110,320,Color(255,255,255));
+	//drawLine(myPixels,100,100,120,310,Color(255,255,255));
+	//drawRays(myPixels,400,500,50,0,360,Color8u(255,255,255));
+	//blur(myPixels);
 	
 }
 
