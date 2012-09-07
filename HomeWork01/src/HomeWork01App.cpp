@@ -66,6 +66,8 @@ private:
 	// Makes the Surface black
 	void blackOutWindow(uint8_t* pixels);
 	
+         // A little bit of overkill on the comments here.  Save the details for when you actually get to the method.
+
 	/*
 	* Creates a gradient that changes from the Color8u c parameter
 	* to white.  The gradient changes smoothly from the top of the
@@ -221,6 +223,7 @@ void HomeWork01App::drawCircle(uint8_t* pixels,int center_x, int center_y, int r
 	for(int y=center_y-r; y<=center_y+r; y++){
 		for(int x=center_x-r; x<=center_x+r; x++){
 			// Bounds test, to stop out-of-bounds memory access
+                          // You shouldn't need this if you set the bounds of your nested for statment correctly.
 			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
 			count++;
 			if(colorAdd >= 255) {
@@ -260,6 +263,8 @@ void HomeWork01App::drawCircle(uint8_t* pixels,int center_x, int center_y, int r
 
 /*
 * Draws an empty square.
+* When commenting methods, make sure you specify what the parameters mean like so: @param pixels: The pixel array to be 
+* modified.
 */
 void HomeWork01App::drawSquare(uint8_t* pixels,int center_x, int center_y, int r, Color8u c)
 {
@@ -268,6 +273,7 @@ void HomeWork01App::drawSquare(uint8_t* pixels,int center_x, int center_y, int r
 	for(int y=center_y-r;y<=center_y+r; y++){
 		for(int x=center_x-r;x<=center_x+r; x++){
 			
+                           // What's the point of this line?  Is there any way to combine it with the line below it?
 			if(y < 0 || x < 0 || x >= kWinWidth || y >= kWinHeight) continue;
 
 			if((x == center_x-r)&&(x == center_x+r)&&(y == center_y-r)&&(y == center_y+r)) {
@@ -474,6 +480,8 @@ void HomeWork01App::tint(uint8_t* pixels, Color8u t)
 }
 /*
 * This blur function works effectively, but it is very, very taxing.
+* You may be able to blur every other pixel to help with the heavy drop in framerate instead of actually blurring every
+* picture if it is that much of a problem.
 */
 void HomeWork01App::blur(uint8_t* myPixels) {
 
@@ -580,6 +588,8 @@ void HomeWork01App::update()
 	drawDiamond(myPixels,313, 250, 200, Color8u(180,255,180));
 	drawDiamond(myPixels,313, 250, 150, Color8u(180,255,180));
 	drawDiamond(myPixels,313, 250, 100, Color8u(180,255,180));
+
+         // Shorten this by looping the 4 drawRectangle calls per section.
 
 	if((count%116) < 58){
 		//Top
